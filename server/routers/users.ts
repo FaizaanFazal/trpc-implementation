@@ -1,18 +1,23 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export const usersRouter = router({
     getUsers: publicProcedure.query(() => {
-        return [
-            { name: "Golmar", race: "Orc" },
-            { name: "Grom", race: "Orc" },
-        ];
+        return prisma.profile.findMany();
     }),
 
     addUser: publicProcedure
         .input(z.object({ name: z.string(), race: z.string() }))
-        .mutation((opts) => {
+        .mutation(async (opts) => {
             const { input } = opts;
-            // TODO: Call prisma add user method
+            await prisma.profile.create({
+                data:{
+                    name:input.name,
+                    race:input.race
+                }
+            })
         }),
 });
